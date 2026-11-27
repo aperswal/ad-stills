@@ -1,10 +1,9 @@
 import { bindings, defineConfig, defineWorker } from 'cf/config';
-import { nodeEnvironment } from './shared/config.ts';
 import { deployDatabaseId } from './shared/deploy.ts';
 export const localDatabaseId = '00000000-0000-4000-8000-000000000001';
 // A deployed app uses the database named in `.deploy.vars`. Until one is set, the local stand-in ID keeps builds and
 // dry runs working.
-const productionDatabaseId = deployDatabaseId(nodeEnvironment()) ?? localDatabaseId;
+const productionDatabaseId = deployDatabaseId(process.env) ?? localDatabaseId;
 export default defineConfig(({ mode }) => ({
   worker: defineWorker({
     name: 'ad-stills',
