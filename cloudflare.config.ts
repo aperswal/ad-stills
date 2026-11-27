@@ -10,7 +10,14 @@ export default defineConfig(({ mode }) => ({
     entrypoint: 'vinext/server/fetch-handler',
     compatibilityDate: '2026-11-26',
     compatibilityFlags: ['nodejs_compat'],
-    assets: { htmlHandling: 'none', notFoundHandling: 'none', runWorkerFirst: ['/*'] },
+    // The built scripts and styles are public files with no secrets in them. They are served straight from the assets,
+    // so the passcode page can load its own look and its own script before anyone has signed in. Everything else
+    // goes through the Worker first, where the lock is.
+    assets: {
+      htmlHandling: 'none',
+      notFoundHandling: 'none',
+      runWorkerFirst: ['/*', '!/_next/static/*', '!/*/_next/static/*'],
+    },
     env: {
       ASSETS: bindings.assets(),
       DB: bindings.d1({
