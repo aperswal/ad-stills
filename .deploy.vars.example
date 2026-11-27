@@ -1,0 +1,3 @@
+# Copy this file to .deploy.vars. It is only needed to deploy to your own Cloudflare account.
+# The ID that `pnpm cf d1 create --name ad-stills` prints.
+D1_DATABASE_ID=

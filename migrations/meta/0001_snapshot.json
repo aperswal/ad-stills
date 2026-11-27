@@ -1,0 +1,431 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "1be3d254-3433-4bfb-bb4c-9b97e9160cbf",
+  "prevId": "fda18809-3bd7-408b-94dc-63fd3e2dda6f",
+  "tables": {
+    "ads": {
+      "name": "ads",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "original_key": {
+          "name": "original_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'queued'"
+        },
+        "attempt": {
+          "name": "attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "claimed_by": {
+          "name": "claimed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "claimed_at": {
+          "name": "claimed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "result_key": {
+          "name": "result_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "copy": {
+          "name": "copy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "extra_note": {
+          "name": "extra_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "failure_reason": {
+          "name": "failure_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ad_position": {
+          "name": "ad_position",
+          "columns": ["batch_id", "position"],
+          "isUnique": true
+        },
+        "ad_queue": {
+          "name": "ad_queue",
+          "columns": ["state", "updated_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ads_batch_id_batches_id_fk": {
+          "name": "ads_batch_id_batches_id_fk",
+          "tableFrom": "ads",
+          "tableTo": "batches",
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ads_claimed_by_runners_id_fk": {
+          "name": "ads_claimed_by_runners_id_fk",
+          "tableFrom": "ads",
+          "tableTo": "runners",
+          "columnsFrom": ["claimed_by"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ad_range": {
+          "name": "ad_range",
+          "value": "\"ads\".\"position\" BETWEEN 0 AND 9 AND \"ads\".\"width\">0 AND \"ads\".\"height\">0 AND \"ads\".\"width\"*\"ads\".\"height\"<=40000000 AND \"ads\".\"attempt\">=0 AND \"ads\".\"updated_at\">=0"
+        },
+        "ad_state": {
+          "name": "ad_state",
+          "value": "\"ads\".\"state\" IN ('queued','running','done','failed')"
+        },
+        "ad_claim": {
+          "name": "ad_claim",
+          "value": "(\"ads\".\"state\"='running' AND \"ads\".\"claimed_by\" IS NOT NULL AND \"ads\".\"claimed_at\" IS NOT NULL) OR (\"ads\".\"state\"<>'running' AND \"ads\".\"claimed_by\" IS NULL AND \"ads\".\"claimed_at\" IS NULL)"
+        },
+        "ad_result": {
+          "name": "ad_result",
+          "value": "(\"ads\".\"state\"='done' AND \"ads\".\"result_key\" IS NOT NULL AND \"ads\".\"copy\" IS NOT NULL AND json_valid(\"ads\".\"copy\")) OR (\"ads\".\"state\"<>'done' AND \"ads\".\"result_key\" IS NULL AND \"ads\".\"copy\" IS NULL)"
+        },
+        "ad_failure": {
+          "name": "ad_failure",
+          "value": "(\"ads\".\"state\"='failed' AND length(\"ads\".\"failure_reason\") BETWEEN 1 AND 1000) OR (\"ads\".\"state\"<>'failed' AND \"ads\".\"failure_reason\" IS NULL)"
+        },
+        "ad_note": {
+          "name": "ad_note",
+          "value": "length(\"ads\".\"extra_note\")<=2000"
+        },
+        "ad_keys": {
+          "name": "ad_keys",
+          "value": "substr(\"ads\".\"original_key\",1,54) = 'batches/' || \"ads\".\"batch_id\" || '/original/' AND (\"ads\".\"result_key\" IS NULL OR substr(\"ads\".\"result_key\",1,52) = 'batches/' || \"ads\".\"batch_id\" || '/result/')"
+        }
+      }
+    },
+    "batches": {
+      "name": "batches",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "brand_name": {
+          "name": "brand_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "problem": {
+          "name": "problem",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "audience": {
+          "name": "audience",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "solution": {
+          "name": "solution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "colours": {
+          "name": "colours",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "batch_text": {
+          "name": "batch_text",
+          "value": "length(trim(\"batches\".\"brand_name\")) BETWEEN 1 AND 80 AND length(trim(\"batches\".\"problem\")) BETWEEN 1 AND 2000 AND length(trim(\"batches\".\"audience\")) BETWEEN 1 AND 2000 AND length(trim(\"batches\".\"solution\")) BETWEEN 1 AND 2000 AND length(\"batches\".\"notes\") <= 4000"
+        },
+        "batch_colours": {
+          "name": "batch_colours",
+          "value": "json_valid(\"batches\".\"colours\") AND json_type(\"batches\".\"colours\") = 'array' AND json_array_length(\"batches\".\"colours\") <= 8"
+        },
+        "batch_dates": {
+          "name": "batch_dates",
+          "value": "\"batches\".\"created_at\" >= 0 AND (\"batches\".\"started_at\" IS NULL OR \"batches\".\"started_at\" >= \"batches\".\"created_at\")"
+        }
+      }
+    },
+    "login_attempts": {
+      "name": "login_attempts",
+      "columns": {
+        "address_hash": {
+          "name": "address_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "window_start": {
+          "name": "window_start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "login_range": {
+          "name": "login_range",
+          "value": "\"login_attempts\".\"attempts\">=1 AND \"login_attempts\".\"window_start\">=0"
+        }
+      }
+    },
+    "product_photos": {
+      "name": "product_photos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "file_key": {
+          "name": "file_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "product_position": {
+          "name": "product_position",
+          "columns": ["batch_id", "position"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "product_photos_batch_id_batches_id_fk": {
+          "name": "product_photos_batch_id_batches_id_fk",
+          "tableFrom": "product_photos",
+          "tableTo": "batches",
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "product_range": {
+          "name": "product_range",
+          "value": "\"product_photos\".\"position\" BETWEEN 0 AND 9"
+        },
+        "product_key": {
+          "name": "product_key",
+          "value": "substr(\"product_photos\".\"file_key\",1,53) = 'batches/' || \"product_photos\".\"batch_id\" || '/product/'"
+        }
+      }
+    },
+    "runners": {
+      "name": "runners",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_seen": {
+          "name": "last_seen",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "codex_version": {
+          "name": "codex_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signed_in": {
+          "name": "signed_in",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "runner_values": {
+          "name": "runner_values",
+          "value": "length(\"runners\".\"name\") BETWEEN 1 AND 80 AND length(\"runners\".\"codex_version\") BETWEEN 1 AND 100 AND \"runners\".\"last_seen\" >= 0 AND \"runners\".\"signed_in\" IN (0,1)"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

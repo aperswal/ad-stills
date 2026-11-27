@@ -1,0 +1,9 @@
+node_modules
+.local
+.cloudflare
+dist
+.vinext
+pnpm-lock.yaml
+evidence
+BRIEF.md
+HANDOFF.md
