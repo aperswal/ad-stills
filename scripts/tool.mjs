@@ -4,7 +4,9 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { parseEnv } from 'node:util';
 import { resolve } from 'node:path';
 const root = process.cwd();
-for (const dir of ['tmp', 'config', 'cache', 'logs'])
+// Temporary files stay in the system's own temp folder. Kept inside the project, a deep project path made socket
+// paths too long and setup failed.
+for (const dir of ['config', 'cache', 'logs'])
   mkdirSync(resolve(root, '.local', dir), { recursive: true });
 // Settings for a deploy to the owner's own Cloudflare account. Git ignores the file.
 const deploySettings = existsSync(resolve(root, '.deploy.vars'))
@@ -22,7 +24,6 @@ const child = spawn(bin, args, {
     DO_NOT_TRACK: '1',
     XDG_CONFIG_HOME: resolve(root, '.local/config'),
     XDG_CACHE_HOME: resolve(root, '.local/cache'),
-    TMPDIR: resolve(root, '.local/tmp'),
     WRANGLER_LOG_PATH: resolve(root, '.local/logs/wrangler.log'),
   },
 });
